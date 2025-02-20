@@ -39,7 +39,13 @@ async function run() {
     const usersCollection = database.collection("users");
     const tasksCollection = database.collection("tasks");
 
-    // Endpoint to create a new user
+
+
+    // -------------------
+    // USERS Endpoint
+    // -------------------
+
+    // 1. Endpoint to create a new user
 
     app.post("/users", async (req, res) => {
       try {
@@ -64,7 +70,7 @@ async function run() {
     // TASKS Endpoints
     // -------------------
 
-    // Get tasks for the logged-in user
+    // 1. Get tasks for the logged-in user
     app.get("/tasks", async (req, res) => {
       try {
         const userId = req.query.userId;
@@ -83,8 +89,32 @@ async function run() {
       }
     });
 
+    // 2. Create a new task
+    app.post("/tasks", async (req, res) => {
+      try {
+        const { title, description, category, userId, order } = req.body;
 
-    // 
+        if (!userId || !title) {
+          return res.status(400).send({ error: "Missing required fields" });
+        }
+
+        const newTask = {
+          title,
+          description: description || "",
+          category: category || "To-Do",
+          timestamp: new Date(),
+          userId,
+          order: order ?? Date.now(),
+        };
+
+        const result = await tasksCollection.insertOne(newTask);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ error: "Failed to create task" });
+      }
+    });
+
+    //
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
